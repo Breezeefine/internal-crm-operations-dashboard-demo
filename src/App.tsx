@@ -1,14 +1,9 @@
 import {
   Activity,
-  AlertTriangle,
-  ArrowDownUp,
   BarChart3,
   BriefcaseBusiness,
   Building2,
   CalendarClock,
-  CheckCircle2,
-  ChevronDown,
-  CircleDollarSign,
   ClipboardList,
   Clock3,
   Database,
@@ -16,7 +11,6 @@ import {
   LayoutDashboard,
   Loader2,
   Mail,
-  MessageSquareText,
   PanelRightOpen,
   Plus,
   RefreshCw,
@@ -26,7 +20,6 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
-  Table2,
   UserRound,
   UsersRound,
   Workflow,
@@ -187,6 +180,8 @@ export function App() {
       await crmApi.updateCustomerStatus(customerId, status);
       await refreshDashboard(`Customer moved to ${status}`);
       setSelectedCustomerId(customerId);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Customer update failed");
     } finally {
       setIsSaving(false);
     }
@@ -197,6 +192,21 @@ export function App() {
     try {
       await crmApi.updateTaskStatus(taskId, status);
       await refreshDashboard(`Task marked ${status}`);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Task update failed");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleCreateDeal() {
+    setIsSaving(true);
+    try {
+      const customer = await crmApi.createSampleOpportunity();
+      await refreshDashboard("Sample opportunity created");
+      setSelectedCustomerId(customer.id);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Opportunity creation failed");
     } finally {
       setIsSaving(false);
     }
@@ -214,6 +224,8 @@ export function App() {
       await crmApi.addNote(selectedCustomer.id, trimmed);
       setNoteDraft("");
       await refreshDashboard("Internal note added");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Note save failed");
     } finally {
       setIsSaving(false);
     }
@@ -248,9 +260,9 @@ export function App() {
             <ClipboardList size={18} aria-hidden="true" />
             Tasks
           </a>
-          <a href="#settings">
+          <a href="#architecture">
             <Settings size={18} aria-hidden="true" />
-            Settings
+            API Layer
           </a>
         </nav>
         <div className="api-card">
@@ -312,7 +324,7 @@ export function App() {
               <p className="eyebrow">Sales pipeline</p>
               <h2>Deal stages and account movement</h2>
             </div>
-            <button className="secondary-button" type="button">
+            <button className="secondary-button" type="button" onClick={handleCreateDeal} disabled={isSaving}>
               <Plus size={16} aria-hidden="true" />
               New deal
             </button>
@@ -336,7 +348,7 @@ export function App() {
                           <strong>{deal.title}</strong>
                           <span>{customer?.company}</span>
                           <small>
-                            {formatCurrency(deal.amount)} · {deal.closeDate}
+                            {formatCurrency(deal.amount)} - {deal.closeDate}
                           </small>
                         </button>
                       );
@@ -477,7 +489,7 @@ export function App() {
                   <strong>{task.title}</strong>
                   <span>
                     <CalendarClock size={14} aria-hidden="true" />
-                    {task.dueDate} · {task.owner}
+                    {task.dueDate} - {task.owner}
                   </span>
                 </div>
                 <div className="task-controls">
@@ -515,7 +527,7 @@ export function App() {
                 <div>
                   <strong>{activity.title}</strong>
                   <p>{activity.detail}</p>
-                  <small>{activity.type} · {activity.createdAt}</small>
+                  <small>{activity.type} - {activity.createdAt}</small>
                 </div>
               </article>
             ))}
@@ -538,7 +550,7 @@ export function App() {
           </form>
         </section>
 
-        <section className="architecture-panel">
+        <section className="architecture-panel" id="architecture">
           <Sparkles size={18} aria-hidden="true" />
           <div>
             <strong>Full-stack signal</strong>
