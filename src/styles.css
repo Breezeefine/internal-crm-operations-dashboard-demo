@@ -111,21 +111,37 @@ select {
   gap: 6px;
 }
 
-.nav-list a {
+.nav-list button {
   min-height: 40px;
   padding: 10px 11px;
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   color: #c5d1db;
-  text-decoration: none;
+  text-align: left;
+  background: transparent;
+  border: 0;
   border-radius: 8px;
 }
 
-.nav-list a.active,
-.nav-list a:hover {
+.nav-list button svg {
+  flex: 0 0 auto;
+}
+
+.nav-list button.active,
+.nav-list button:hover {
   color: #ffffff;
   background: #23678e;
+}
+
+.section-target {
+  scroll-margin: 18px;
+}
+
+.section-highlight {
+  outline: 3px solid rgba(35, 103, 142, 0.35);
+  box-shadow: 0 0 0 5px rgba(35, 103, 142, 0.08);
 }
 
 .api-card {
@@ -761,11 +777,10 @@ tr.selected td {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
-  .nav-list a {
+  .nav-list button {
     justify-content: center;
   }
 
-  .nav-list a span,
   .api-card {
     display: none;
   }
@@ -797,6 +812,12 @@ tr.selected td {
 
   .nav-list {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .nav-list button {
+    padding: 9px 8px;
+    gap: 6px;
+    font-size: 14px;
   }
 
   .metric-grid {

@@ -24,12 +24,14 @@ import {
   UsersRound,
   Workflow,
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { FormEvent, RefObject } from "react";
 import { crmApi } from "./api";
 import { Customer, CustomerStatus, DashboardMetric, DashboardSnapshot, TaskStatus } from "./types";
 
 const statusOrder: CustomerStatus[] = ["Lead", "Qualified", "Proposal", "Won", "At Risk"];
 const taskStatusOptions: TaskStatus[] = ["Open", "In Progress", "Done"];
+type NavSection = "dashboard" | "pipeline" | "customers" | "tasks" | "architecture";
 
 const statusClasses: Record<CustomerStatus, string> = {
   Lead: "status lead",
@@ -117,6 +119,21 @@ export function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState("Mock API connected");
   const [noteDraft, setNoteDraft] = useState("");
+  const [activeSection, setActiveSection] = useState<NavSection>("dashboard");
+  const [highlightedSection, setHighlightedSection] = useState<NavSection | null>(null);
+  const dashboardRef = useRef<HTMLElement | null>(null);
+  const pipelineRef = useRef<HTMLElement | null>(null);
+  const customersRef = useRef<HTMLElement | null>(null);
+  const tasksRef = useRef<HTMLElement | null>(null);
+  const architectureRef = useRef<HTMLElement | null>(null);
+
+  const sectionRefs: Record<NavSection, RefObject<HTMLElement | null>> = {
+    dashboard: dashboardRef,
+    pipeline: pipelineRef,
+    customers: customersRef,
+    tasks: tasksRef,
+    architecture: architectureRef,
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -166,6 +183,20 @@ export function App() {
 
   if (!snapshot || !selectedCustomer) {
     return <AppShellLoading />;
+  }
+
+  function handleNavClick(section: NavSection) {
+    setActiveSection(section);
+    setHighlightedSection(section);
+    sectionRefs[section].current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+      inline: "nearest",
+    });
+
+    window.setTimeout(() => {
+      setHighlightedSection((current) => (current === section ? null : current));
+    }, 1400);
   }
 
   async function refreshDashboard(message = "Dashboard refreshed") {
@@ -244,26 +275,46 @@ export function App() {
           </div>
         </div>
         <nav className="nav-list">
-          <a className="active" href="#dashboard">
+          <button
+            className={activeSection === "dashboard" ? "active" : ""}
+            type="button"
+            onClick={() => handleNavClick("dashboard")}
+          >
             <LayoutDashboard size={18} aria-hidden="true" />
             Dashboard
-          </a>
-          <a href="#pipeline">
+          </button>
+          <button
+            className={activeSection === "pipeline" ? "active" : ""}
+            type="button"
+            onClick={() => handleNavClick("pipeline")}
+          >
             <BarChart3 size={18} aria-hidden="true" />
             Pipeline
-          </a>
-          <a href="#customers">
+          </button>
+          <button
+            className={activeSection === "customers" ? "active" : ""}
+            type="button"
+            onClick={() => handleNavClick("customers")}
+          >
             <UsersRound size={18} aria-hidden="true" />
             Customers
-          </a>
-          <a href="#tasks">
+          </button>
+          <button
+            className={activeSection === "tasks" ? "active" : ""}
+            type="button"
+            onClick={() => handleNavClick("tasks")}
+          >
             <ClipboardList size={18} aria-hidden="true" />
             Tasks
-          </a>
-          <a href="#architecture">
+          </button>
+          <button
+            className={activeSection === "architecture" ? "active" : ""}
+            type="button"
+            onClick={() => handleNavClick("architecture")}
+          >
             <Settings size={18} aria-hidden="true" />
-            API Layer
-          </a>
+            API
+          </button>
         </nav>
         <div className="api-card">
           <div className="api-card-icon">
@@ -307,7 +358,12 @@ export function App() {
           </span>
         </section>
 
-        <section id="dashboard" className="metric-grid" aria-label="Dashboard metrics">
+        <section
+          id="dashboard"
+          ref={dashboardRef}
+          className={`metric-grid section-target ${highlightedSection === "dashboard" ? "section-highlight" : ""}`}
+          aria-label="Dashboard metrics"
+        >
           {metrics.map((metric) => (
             <article className={`metric-card ${metric.tone}`} key={metric.label}>
               <span>{metric.label}</span>
@@ -318,7 +374,11 @@ export function App() {
           ))}
         </section>
 
-        <section id="pipeline" className="panel pipeline-panel">
+        <section
+          id="pipeline"
+          ref={pipelineRef}
+          className={`panel pipeline-panel section-target ${highlightedSection === "pipeline" ? "section-highlight" : ""}`}
+        >
           <div className="panel-header">
             <div>
               <p className="eyebrow">Sales pipeline</p>
@@ -360,7 +420,11 @@ export function App() {
           </div>
         </section>
 
-        <section id="customers" className="panel table-panel">
+        <section
+          id="customers"
+          ref={customersRef}
+          className={`panel table-panel section-target ${highlightedSection === "customers" ? "section-highlight" : ""}`}
+        >
           <div className="panel-header">
             <div>
               <p className="eyebrow">Customer records</p>
@@ -474,7 +538,11 @@ export function App() {
           </div>
         </section>
 
-        <section id="tasks" className="detail-section">
+        <section
+          id="tasks"
+          ref={tasksRef}
+          className={`detail-section section-target ${highlightedSection === "tasks" ? "section-highlight" : ""}`}
+        >
           <div className="detail-section-header">
             <div>
               <p className="eyebrow">Task queue</p>
@@ -550,7 +618,11 @@ export function App() {
           </form>
         </section>
 
-        <section className="architecture-panel" id="architecture">
+        <section
+          className={`architecture-panel section-target ${highlightedSection === "architecture" ? "section-highlight" : ""}`}
+          id="architecture"
+          ref={architectureRef}
+        >
           <Sparkles size={18} aria-hidden="true" />
           <div>
             <strong>Full-stack signal</strong>
